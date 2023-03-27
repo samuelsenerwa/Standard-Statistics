@@ -35,8 +35,11 @@ import android.widget.EditText;
 
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,13 +57,28 @@ import android.widget.Toast;
 import com.example.android.ctc.databinding.ActivityMainBinding;
 import com.example.android.ctc.databinding.FragmentSecondBinding;
 import com.google.android.material.bottomnavigation.BottomNavigationItemView;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Header;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfWriter;
 //import com.itextpdf.text.Document;
 //import com.itextpdf.text.DocumentException;
 //import com.itextpdf.text.Paragraph;
 //import com.itextpdf.text.pdf.PdfDocument;
 //import com.itextpdf.text.pdf.PdfWriter;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
+import org.xml.sax.SAXException;
+
 import java.util.Calendar;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -95,7 +113,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         setSupportActionBar(binding.toolbar);
-
 
 //        II_pdflayout = (ScrollView) findViewById(R.id.pdf);
 //
@@ -495,49 +512,52 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void savepdf() {
-//        try {
-//            String result = three_ms_voice_activated;
-//
-//
-//            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a", Locale.getDefault());
-//            String dateTime = dateFormat.format(calendar.getTime());
-//
-//
-//
-//            String pdfName = "CTC_calculations.pdf";
-//
-//            inputEditText = findViewById(R.id.inputValues);
-////            String input = inputEditText.getText().toString();
-//
-//
-//            File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-////            File path = Environment.getExternalStorageDirectory();
-////            File path2 = Context.getExternalFilesDir(null)
-//            File pdfFile = new File(path, "ctc_calculations.pdf");
-//            Toast.makeText(this, "Saved  to downloads/ctc_calculation.pdf", Toast.LENGTH_SHORT).show();
-//
-//
-//
-//            if (!pdfFile.exists()) {
-//                try {
-//                    pdfFile.createNewFile();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//
-//            PdfWriter.getInstance(document, new FileOutputStream(pdfFile));
-//            document.open();
-//            document.add(new Paragraph("||||||||||| :" + dateTime));
-//            document.add(new Paragraph("Given :" +  ""+three_ms_voice_activated));
-//            document.add(new Paragraph("        :" + three_ms_voice_activated));
-//            document.add(new Paragraph("||||||||||| :" + dateTime));
-//            document.close();
-////            Toast.makeText(this, "calculation saved as ctc_calculations.pdf in download folder", Toast.LENGTH_LONG).show();
-//        } catch (DocumentException | FileNotFoundException e) {
-//            e.printStackTrace();
-////            Toast.makeText(this, "requires android sdk < 29", Toast.LENGTH_LONG).show();
-//        }
+        //save in pdf format
+           try {
+            String result = three_ms_voice_activated;
+
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a", Locale.getDefault());
+            String dateTime = dateFormat.format(calendar.getTime());
+
+
+
+            String pdfName = "CTC_calculations.pdf";
+
+            inputEditText = findViewById(R.id.inputValues);
+//            String input = inputEditText.getText().toString();
+
+
+            File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+//            File path = Environment.getExternalStorageDirectory();
+//            File path2 = Context.getExternalFilesDir(null)
+            File pdfFile = new File(path, "ctc_calculations.pdf");
+            Toast.makeText(this, "Saved  to downloads/ctc_calculation.pdf", Toast.LENGTH_SHORT).show();
+
+
+
+            if (!pdfFile.exists()) {
+                try {
+                    pdfFile.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+//            Document document = new Document();
+               com.itextpdf.text.Document document = new com.itextpdf.text.Document();
+            PdfWriter.getInstance((com.itextpdf.text.Document) document, new FileOutputStream(pdfFile));
+            document.open();
+            document.add(new Paragraph("||||||||||| :" + dateTime));
+            document.add(new Paragraph("Given :" +  ""+three_ms_voice_activated));
+            document.add(new Paragraph("        :" + three_ms_voice_activated));
+            document.add(new Paragraph("||||||||||| :" + dateTime));
+            document.close();
+               runOnUiThread(() -> Toast.makeText(this, "PDF saved to Downloads/ctc_calculations.pdf", Toast.LENGTH_LONG).show());
+//            Toast.makeText(this, "calculation saved as ctc_calculations.pdf in download folder", Toast.LENGTH_LONG).show();
+        } catch (IOException | DocumentException e) {
+          e.printStackTrace();
+          runOnUiThread(() -> Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
+        }
 
         //save pdf version 2
 //        try {
@@ -579,27 +599,30 @@ public class MainActivity extends AppCompatActivity {
 //            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
 //        }
 //
+//        //save in png format
+//
+//        try {
+//            //save the file in any format not pdf only even image
+//            ScrollView content = findViewById(R.id.pdf);
+//            content.setDrawingCacheEnabled(true);
+//            Bitmap bitmap = content.getDrawingCache();
+//            File file, f = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+//            if (android.os.Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+//                file = new File(android.os.Environment.getExternalStorageDirectory(), "CTC_Image");
+//                if (!file.exists()) {
+//                    file.mkdirs();
+//                }
+//                f = new File(file.getAbsoluteFile() + file.separator + "filename" + ".png");
+//            }
+//            FileOutputStream outputStream = new FileOutputStream(f);
+//            bitmap.compress(Bitmap.CompressFormat.PNG, 10, outputStream);
+//            outputStream.close();
+//            Toast.makeText(MainActivity.this, "Successfully", Toast.LENGTH_SHORT).show();
+//
+//        } catch (Exception e) {
+//            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+//        }
 
-        try {
-            //save the file in any format not pdf only even image
-            ScrollView content = findViewById(R.id.pdf);
-            content.setDrawingCacheEnabled(true);
-            Bitmap bitmap = content.getDrawingCache();
-            File file, f = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            if (android.os.Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                file = new File(android.os.Environment.getExternalStorageDirectory(), "CTC_Image");
-                if (!file.exists()) {
-                    file.mkdirs();
-                }
-                f = new File(file.getAbsoluteFile() + file.separator + "filename" + ".png");
-            }
-            FileOutputStream outputStream = new FileOutputStream(f);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 10, outputStream);
-            outputStream.close();
-            Toast.makeText(MainActivity.this, "Successfully", Toast.LENGTH_SHORT).show();
 
-        } catch (Exception e) {
-            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-        }
     }
 }
